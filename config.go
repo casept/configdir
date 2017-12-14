@@ -31,6 +31,7 @@ import (
 //ConfigType is the numerical identifier of the type of configuration directory.
 type ConfigType int
 
+// Various types of directories, such as the per-user config directory or cache directory.
 const (
 	System ConfigType = iota
 	Global
@@ -186,11 +187,11 @@ func (c ConfigDir) GetFolder(configType ConfigType) string {
 		path = c.joinPath(globalSettingFolder)
 	}
 	if configType != Global && configType != Local {
-		path = c.joinPath(root)
+		path = c.joinPath(systemSettingFolders[0])
 	}
 	return path
 }
 
-func getCacheFolder(c ConfigDir) {
+func (c ConfigDir) getCacheFolder() string {
 	return c.joinPath(cacheFolder)
 }
