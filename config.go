@@ -165,10 +165,32 @@ func (c ConfigDir) QueryFolderContainsFile(fileName string) *Config {
 	return nil
 }
 
-// QueryCacheFolder returns a Config struct containing the path to a the cache directory.
+// QueryCacheFolder returns a Config struct containing the path to the cache directory.
 func (c ConfigDir) QueryCacheFolder() *Config {
 	return &Config{
 		Path: c.joinPath(cacheFolder),
 		Type: Cache,
 	}
+}
+
+// GetFolder returns the location of the specified type of config folder.
+func (c ConfigDir) GetFolder(configType ConfigType) string {
+	var path string
+	if configType == Cache {
+		return c.getCacheFolder()
+	}
+	if c.LocalPath != "" && configType != System && configType != Global {
+		path = c.LocalPath
+	}
+	if configType != System && configType != Local {
+		path = c.joinPath(globalSettingFolder)
+	}
+	if configType != Global && configType != Local {
+		path = c.joinPath(root)
+	}
+	return path
+}
+
+func getCacheFolder(c ConfigDir) {
+	return c.joinPath(cacheFolder)
 }
