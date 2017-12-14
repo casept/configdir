@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 )
 
+//ConfigType is the numerical identifier of the type of configuration directory.
 type ConfigType int
 
 const (
@@ -42,13 +43,17 @@ const (
 // Config represents each folder
 type Config struct {
 	Path string
+	// Type is the numerical identifier for the type of folder.
+	// You shouldn't set this manually.
 	Type ConfigType
 }
 
+// Open opens the specified file inside of Config.Path.
 func (c Config) Open(fileName string) (*os.File, error) {
 	return os.Open(filepath.Join(c.Path, fileName))
 }
 
+// Create creates the specified file inside of Config.Path (and it's parent directory, if needed).
 func (c Config) Create(fileName string) (*os.File, error) {
 	err := c.CreateParentDir(fileName)
 	if err != nil {
@@ -57,6 +62,7 @@ func (c Config) Create(fileName string) (*os.File, error) {
 	return os.Create(filepath.Join(c.Path, fileName))
 }
 
+// ReadFile reads the specified file inside of Config.Path
 func (c Config) ReadFile(fileName string) ([]byte, error) {
 	return ioutil.ReadFile(filepath.Join(c.Path, fileName))
 }
@@ -67,6 +73,8 @@ func (c Config) CreateParentDir(fileName string) error {
 	return os.MkdirAll(filepath.Dir(filepath.Join(c.Path, fileName)), 0755)
 }
 
+// WriteFile writes data to the specified file inside of Config.Path.
+// The parent directory of the file is created if not present.
 func (c Config) WriteFile(fileName string, data []byte) error {
 	err := c.CreateParentDir(fileName)
 	if err != nil {
@@ -75,10 +83,12 @@ func (c Config) WriteFile(fileName string, data []byte) error {
 	return ioutil.WriteFile(filepath.Join(c.Path, fileName), data, 0644)
 }
 
+// MkdirAll creates Config.Path and all needed parent directories.
 func (c Config) MkdirAll() error {
 	return os.MkdirAll(c.Path, 0755)
 }
 
+// Exists checks whether a file exists inside of Config.Path.
 func (c Config) Exists(fileName string) bool {
 	_, err := os.Stat(filepath.Join(c.Path, fileName))
 	return !os.IsNotExist(err)
@@ -91,6 +101,7 @@ type ConfigDir struct {
 	LocalPath       string
 }
 
+// New creates a new ConfigDir struct.
 func New(vendorName, applicationName string) ConfigDir {
 	return ConfigDir{
 		VendorName:      vendorName,
@@ -105,6 +116,7 @@ func (c ConfigDir) joinPath(root string) string {
 	return filepath.Join(root, c.ApplicationName)
 }
 
+// QueryFolders returns the location of the specified type of config folder.
 func (c ConfigDir) QueryFolders(configType ConfigType) []*Config {
 	if configType == Cache {
 		return []*Config{c.QueryCacheFolder()}
@@ -142,6 +154,7 @@ func (c ConfigDir) QueryFolders(configType ConfigType) []*Config {
 	return existing
 }
 
+// QueryFolderContainsFile checks whether ConfigDir contains the specified file.
 func (c ConfigDir) QueryFolderContainsFile(fileName string) *Config {
 	configs := c.QueryFolders(Existing)
 	for _, config := range configs {
@@ -152,6 +165,7 @@ func (c ConfigDir) QueryFolderContainsFile(fileName string) *Config {
 	return nil
 }
 
+// QueryCacheFolder returns a Config struct containing the path to a the cache directory.
 func (c ConfigDir) QueryCacheFolder() *Config {
 	return &Config{
 		Path: c.joinPath(cacheFolder),
